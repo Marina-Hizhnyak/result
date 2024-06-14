@@ -72,7 +72,21 @@ form {
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.82);
   text-align: center;
 }
-
+.form-profil {
+  width: 200px;
+  height: 50px;
+  margin: 0;
+  margin-right: 50px;
+  margin-left: auto;
+}
+.form-flex {
+display: flex;
+flex-direction: row;
+justify-content: space-around;
+}
+.user-info {
+margin-left: 50px;
+}
 .title-form {
   cursor: help;
   margin: 0;

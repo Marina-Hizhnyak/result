@@ -2,110 +2,67 @@
 require 'formRules.php';
 require 'formRulesMethods.php';
 require 'validate.php';
-session_start();
+require_once 'connectionBD.php';
+require_once 'functions.php';
 
+session_start();
 $metaDescription = "Form autorisation";
 $pageTitre = "Form autorisation";
 include 'header.php';
- 
-
-function connexion_bdd(): ?PDO
-{
-$nomDuServeur = "localhost";
-$nomUtilisateur = "root";
-$motDePasse = "root";
-$nomBDD = "bdd_ifosup";
-
-    try
-    {
-        // Instancier une nouvelle connexion.
-        $pdo = new PDO("mysql:host=$nomDuServeur;dbname=$nomBDD", $nomUtilisateur, $motDePasse);
-
-        // Définir le mode d'erreur sur "exception".
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-              // Afficher un message de succès.
-        echo "Connexion réussie à la base de données";
-        // Retourner l'objet PDO après la connexion.
-        return $pdo;
-    }
-    catch(PDOException $e)
-    {
-        // Relancer l'exception pour qu'elle soit capturée par le bloc "try/catch" parent.
-        throw $e;
-    }
-}
-
-// var_dump($_SERVER['REQUEST_METHOD']);
-
-
 
 if (isset($_SESSION['success']) && $_SESSION['success'] == true) {
+    try {
+        $pdo = connexion_bdd();
+        $requete = "SELECT * FROM t_utilisateur_uti WHERE uti_pseudo = :pseudo";
+        $stmt = $pdo->prepare($requete);
+        $stmt->bindValue(':pseudo', $_SESSION['connexion_pseudo']['value'], PDO::PARAM_STR);
+        $estValide = $stmt->execute();
+    } catch (PDOException $e) {
+        error_log("Erreur d'exécution de requête : " . $e->getMessage());
+        echo "Une erreur est survenue. Veuillez réessayer plus tard.";
+    }
 
-    try
-{
-    // Instancier la connexion à la base de données.
-    $pdo = connexion_bdd();
-
-    // if (empty($resultValidate)){
-    // La requête permettant d'ajouter un nouvel utilisateur à la table "t_utilisateur_uti".
-    $requete = "INSERT INTO t_utilisateur_uti (uti_pseudo, uti_motdepasse) VALUES (:pseudo, :motdepasse)";
-
-    // Préparer la requête SQL.
-    $stmt = $pdo->prepare($requete);
-// print_r($_SESSION['connexion_pseudo']);
-    // Lier les variables aux marqueurs :
-    $stmt->bindValue(':pseudo', $_SESSION['connexion_pseudo']['value'], PDO::PARAM_STR);
-    $stmt->bindValue(':motdepasse', $_SESSION['connexion_motDePasse']['value'], PDO::PARAM_STR);
-  
-    // Exécuter la requête.
-    $stmt->execute();
-    // }
+    if (isset($estValide) && $estValide !== false) {
+        $utilisateur = $stmt->fetch(PDO::FETCH_ASSOC);
+// var_dump($utilisateur);
+        if (($_SESSION['connexion_motDePasse']['value']==$utilisateur['uti_motdepasse'])) {
+            // Rediriger vers profil.php après une connexion réussie
+            $_SESSION['user_id'] = $utilisateur['uti_id'];
+            header('Location: profil.php');
+            exit();
+        } else {
+            echo "Mot de passe incorrect.";
+        }
+    } else {
+        echo "Utilisateur non trouvé.";
+    }
 }
-catch(PDOException $e)
-{
-  
-        echo "Erreur d'exécution de requête : " . $e->getMessage() . PHP_EOL;
-}
 
 
-
-// function setSessionFieldsValue($values) {
-//     foreach ($values as $key => $value) {
-//        $_SESSION[$key]['value'] = $_POST[$key]; 
-//     } 
-// }
-
-
-}
 ?>
 
-
-  
-<!-- Form autorisation -->
 <h1>Form autorisation</h1>
-  <?=$messageValidation ?? ''?>
+<?=$messageValidation ?? ''?>
 <form action="authValidator.php" method="post">
-<label for="login">Login</label>
-<input type="text" name="connexion_pseudo" id="login">
-        <small class="text-error">
-			<?php if (isset($_SESSION['connexion_pseudo']['message'])) echo $_SESSION['connexion_pseudo']['message']; else echo '&nbsp;'; ?>
-		</small>
-<label for="pass">Password</label>
-<input type="password" name="connexion_motDePasse" id="pass">
-        <small class="text-error">
-			<?php if (isset($_SESSION['connexion_motDePasse']['message'])) echo $_SESSION['connexion_motDePasse']['message']; else echo '&nbsp;'; ?>
-		</small>
-<input type="submit" value="Entrer" class="submit">
-<p>
-  registration - <a href="registration.php">registrer</a>
-</p>
+    <label for="login">Login</label>
+    <input type="text" name="connexion_pseudo" id="login">
+    <small class="text-error">
+        <?= $_SESSION['connexion_pseudo']['message'] ?? '&nbsp;' ?>
+    </small>
+    <label for="pass">Password</label>
+    <input type="password" name="connexion_motDePasse" id="pass">
+    <small class="text-error">
+        <?= $_SESSION['connexion_motDePasse']['message'] ?? '&nbsp;' ?>
+    </small>
+    <input type="submit" value="Entrer" class="submit">
+    <p>
+        registration - <a href="registration.php">registrer</a>
+    </p>
 </form>
-<?php session_destroy();
- include 'footer.php'; 
-
-
-
+<?php
+session_unset();
+session_destroy();
+include 'footer.php';
 ?>
 
 

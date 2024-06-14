@@ -1,5 +1,5 @@
 <?php 
-session_start();
+
 
 $metaDescription = "Contact";
 $pageTitre = "Contact";
@@ -7,7 +7,7 @@ include 'header.php';
 
  if (isset($_SESSION['success']))  
 $messageValidation = "<p class='success'>le formulaire a bien été envoyée!</p>";
-
+session_start();
 ?>
 <form action="formValidator.php" method="post">
     <h1 class="title-form">Contact</h1>
