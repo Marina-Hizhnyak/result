@@ -27,9 +27,9 @@ if (isset($_SESSION['success']) && $_SESSION['success'] == true) {
     $stmt = $pdo->prepare($requete);
 // print_r($_SESSION['connexion_pseudo']);
     // Lier les variables aux marqueurs :
-    $stmt->bindValue(':pseudo', $_SESSION['connexion_pseudo']['value'], PDO::PARAM_STR);
-    $stmt->bindValue(':motdepasse', $_SESSION['connexion_motDePasse']['value'], PDO::PARAM_STR);
-    $stmt->bindValue(':email', $_SESSION['mail']['value'], PDO::PARAM_STR);
+        $stmt->bindValue(':pseudo', htmlspecialchars($_SESSION['connexion_pseudo']['value']), PDO::PARAM_STR);
+        $stmt->bindValue(':motdepasse', htmlspecialchars($_SESSION['connexion_motDePasse']['value']), PDO::PARAM_STR);
+        $stmt->bindValue(':email', htmlspecialchars($_SESSION['mail']['value']), PDO::PARAM_STR);
     // Exécuter la requête.
     $result = $stmt->execute();
 
